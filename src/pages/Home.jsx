@@ -20,8 +20,10 @@ export default function Home() {
 
   const { data: categoriesRes } = useQuery({
     queryKey: ['categories'],
-    queryFn: () => api.get('/categories').then((r) => r.data),
+    queryFn: () => api.get('/categories').then((r) => r.data.data),
   });
+
+  const categories = Array.isArray(categoriesRes) ? categoriesRes : [];
 
   const { data, isLoading } = useQuery({
     queryKey: ['courses', { search, category, level, page }],
@@ -33,7 +35,7 @@ export default function Home() {
         .then((r) => r.data),
   });
 
-  const categories = categoriesRes?.data || [];
+  const courses = Array.isArray(data?.data) ? data.data : [];
 
   return (
     <div className="space-y-6">
@@ -114,7 +116,7 @@ export default function Home() {
           Array.from({ length: 6 }).map((_, i) => <CourseCardSkeleton key={i} />)}
 
         {!isLoading &&
-          (data?.data || []).map((course) => (
+          courses.map((course) => (
             <Link
               key={course._id}
               to={`/courses/${course._id}`}
@@ -148,7 +150,7 @@ export default function Home() {
             </Link>
           ))}
 
-        {!isLoading && data?.data?.length === 0 && (
+        {!isLoading && courses.length === 0 && (
           <div className="col-span-full bg-white border border-slate-200 rounded-xl p-8 text-center">
             <div className="text-4xl mb-2">🔍</div>
             <p className="text-slate-500">No courses match your filters.</p>

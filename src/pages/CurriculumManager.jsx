@@ -33,7 +33,7 @@ export default function CurriculumManager() {
     queryFn: () => api.get(`/courses/${id}`).then((r) => r.data.data),
   });
 
-  const lessons = course?.lessons || [];
+  const lessons = Array.isArray(course?.lessons) ? course.lessons : [];
 
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ['course-edit', id] });
@@ -116,7 +116,9 @@ export default function CurriculumManager() {
   };
 
   if (isLoading) return <Spinner full />;
-  if (!course) return <p className="text-slate-500">Course not found</p>;
+  if (!course || typeof course !== 'object') {
+    return <p className="text-slate-500">Course not found</p>;
+  }
 
   return (
     <div className="space-y-5">
@@ -173,7 +175,11 @@ export default function CurriculumManager() {
         ))}
       </div>
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? 'Edit Lesson' : 'Add Lesson'}>
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={editing ? 'Edit Lesson' : 'Add Lesson'}
+      >
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>

@@ -28,6 +28,8 @@ export default function CourseEditor() {
     queryFn: () => api.get('/categories').then((r) => r.data.data),
   });
 
+  const categories = Array.isArray(categoriesRes) ? categoriesRes : [];
+
   const { data: existing, isLoading } = useQuery({
     queryKey: ['course-edit', id],
     queryFn: () => api.get(`/courses/${id}`).then((r) => r.data.data),
@@ -35,7 +37,7 @@ export default function CourseEditor() {
   });
 
   useEffect(() => {
-    if (existing) {
+    if (existing && typeof existing === 'object' && existing.title) {
       setForm({
         title: existing.title || '',
         description: existing.description || '',
@@ -57,9 +59,12 @@ export default function CourseEditor() {
     onSuccess: (data) => {
       toast.success(isNew ? 'Course created' : 'Course updated');
       queryClient.invalidateQueries({ queryKey: ['instructor-courses'] });
-      if (isNew) nav(`/instructor/courses/${data._id}/curriculum`);
+      if (isNew && data?._id) {
+        nav(`/instructor/courses/${data._id}/curriculum`);
+      }
     },
-    onError: (err) => toast.error(err.response?.data?.message || 'Save failed'),
+    onError: (err) =>
+      toast.error(err.response?.data?.message || 'Save failed'),
   });
 
   const uploadThumbnail = async (file) => {
@@ -70,7 +75,11 @@ export default function CourseEditor() {
       const { data } = await api.post('/uploads/thumbnail', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      setForm((f) => ({ ...f, thumbnailUrl: data.data.url, thumbnailPublicId: data.data.publicId }));
+      setForm((f) => ({
+        ...f,
+        thumbnailUrl: data.data.url,
+        thumbnailPublicId: data.data.publicId,
+      }));
       toast.success('Thumbnail uploaded');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Upload failed');
@@ -90,7 +99,10 @@ export default function CourseEditor() {
     <div className="space-y-5 max-w-3xl">
       <h1 className="text-2xl font-bold">{isNew ? 'New Course' : 'Edit Course'}</h1>
 
-      <form onSubmit={onSubmit} className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
+      <form
+        onSubmit={onSubmit}
+        className="bg-white border border-slate-200 rounded-xl p-6 space-y-4"
+      >
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
           <input
@@ -120,8 +132,10 @@ export default function CourseEditor() {
               onChange={(e) => setForm({ ...form, category: e.target.value })}
             >
               <option value="">Select category</option>
-              {(categoriesRes || []).map((c) => (
-                <option key={c._id} value={c._id}>{c.name}</option>
+              {categories.map((c) => (
+                <option key={c._id} value={c._id}>
+                  {c.name}
+                </option>
               ))}
             </select>
           </div>
@@ -160,7 +174,11 @@ export default function CourseEditor() {
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Thumbnail</label>
           {form.thumbnailUrl && (
-            <img src={form.thumbnailUrl} alt="thumbnail" className="w-48 h-28 object-cover rounded-lg mb-2" />
+            <img
+              src={form.thumbnailUrl}
+              alt="thumbnail"
+              className="w-48 h-28 object-cover rounded-lg mb-2"
+            />
           )}
           <input
             type="file"
