@@ -10,9 +10,12 @@ export default function PasswordChecklist({ password, showWhenEmpty = true }) {
       {checks.map((c) => (
         <li
           key={c.key}
-          className={c.ok ? 'text-green-600' : 'text-slate-500'}
+          className={`flex items-center gap-2 ${
+            c.ok ? 'text-green-600 font-medium' : 'text-ink-400'
+          }`}
         >
-          {c.ok ? '✓' : '○'} {c.label}
+          <span className="w-4 inline-block">{c.ok ? '✓' : '○'}</span>
+          <span>{c.label}</span>
         </li>
       ))}
     </ul>

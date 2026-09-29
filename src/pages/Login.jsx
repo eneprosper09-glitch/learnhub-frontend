@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
   const { login } = useAuth();
   const nav = useNavigate();
+  const [params] = useSearchParams();
+  const redirect = params.get('redirect') || '/courses';
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
 
@@ -15,13 +17,13 @@ export default function Login() {
     try {
       await login(form.email, form.password);
       toast.success('Welcome back!');
-      nav('/');
+      nav(redirect, { replace: true });
     } catch (err) {
-      const data = err.response?.data;
+      const d = err.response?.data;
       if (err.response?.status === 423) {
-        toast.error(data?.message || 'Account locked. Try again later.');
+        toast.error(d?.message || 'Account locked. Try again later.');
       } else {
-        toast.error(data?.message || 'Login failed');
+        toast.error(d?.message || 'Login failed');
       }
     } finally {
       setLoading(false);
@@ -29,31 +31,33 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900 p-4">
-      <form onSubmit={onSubmit} className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-black-900 p-4">
+      <form onSubmit={onSubmit} className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md">
         <div className="text-center mb-6">
-          <div className="text-4xl mb-2">🎓</div>
-          <h1 className="text-2xl font-bold">LearnHub</h1>
-          <p className="text-slate-500 text-sm mt-1">Sign in to your account</p>
+          <Link to="/" className="inline-block">
+            <div className="text-4xl mb-2">🎓</div>
+            <h1 className="text-2xl font-bold text-black-900">LearnHub</h1>
+          </Link>
+          <p className="text-black-500 text-sm mt-1">Sign in to your account</p>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-black-700 mb-1">Email</label>
             <input
               type="email"
               required
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-black-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black-900"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-black-700 mb-1">Password</label>
             <input
               type="password"
               required
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-black-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black-900"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
             />
@@ -61,7 +65,7 @@ export default function Login() {
         </div>
 
         <div className="flex justify-end mt-2">
-          <Link to="/forgot-password" className="text-sm text-indigo-600 hover:underline">
+          <Link to="/forgot-password" className="text-sm text-black-700 hover:underline">
             Forgot password?
           </Link>
         </div>
@@ -69,14 +73,14 @@ export default function Login() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 rounded-lg disabled:opacity-50"
+          className="w-full mt-4 bg-black-900 hover:bg-black-800 text-white font-semibold py-2.5 rounded-xl disabled:opacity-50 transition"
         >
           {loading ? 'Signing in...' : 'Sign In'}
         </button>
 
-        <p className="text-sm mt-4 text-center text-slate-600">
+        <p className="text-sm mt-4 text-center text-black-600">
           No account?{' '}
-          <Link to="/register" className="text-indigo-600 hover:underline font-medium">
+          <Link to="/register" className="text-black-900 hover:underline font-semibold">
             Register
           </Link>
         </p>

@@ -13,7 +13,6 @@ export const AuthProvider = ({ children }) => {
         const refreshRes = await api.post('/auth/refresh');
         const token = refreshRes.data.accessToken;
         setAccessToken(token);
-
         const meRes = await api.get('/auth/me');
         setUser(meRes.data.data);
       } catch {
@@ -23,7 +22,6 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
       }
     };
-
     bootstrap();
   }, []);
 

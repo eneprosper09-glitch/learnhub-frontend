@@ -31,39 +31,113 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900 p-4">
-      <form onSubmit={onSubmit} className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
-        <div className="text-center mb-6">
-          <div className="text-4xl mb-2">🎓</div>
-          <h1 className="text-2xl font-bold">Set New Password</h1>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">New Password</label>
-          <input
-            type="password"
-            required
-            className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <PasswordChecklist password={password} />
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading || !isStrongPassword(password)}
-          className="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 rounded-lg disabled:opacity-50"
-        >
-          {loading ? 'Resetting...' : 'Reset Password'}
-        </button>
-
-        <p className="text-sm mt-4 text-center text-slate-600">
-          <Link to="/login" className="text-indigo-600 hover:underline font-medium">
-            Back to Login
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 bg-white border border-black-200 rounded-2xl overflow-hidden shadow-card">
+        {/* LEFT: BENEFITS PANEL */}
+        <div className="hidden lg:flex flex-col justify-between bg-black-900 text-white p-10">
+          <Link to="/" className="flex items-center gap-2">
+            <span className="text-2xl">🎓</span>
+            <span className="font-display font-extrabold text-lg">LearnHub</span>
           </Link>
-        </p>
-      </form>
+
+          <div>
+            <h2 className="font-display font-extrabold text-3xl leading-tight mb-4">
+              Choose a strong password.
+            </h2>
+            <p className="text-white/80 leading-relaxed">
+              Your new password must meet the following requirements. A strong password keeps
+              your account and progress safe.
+            </p>
+
+            <ul className="space-y-4 text-white/80 mt-8">
+              <li className="flex gap-3">
+                <span className="text-white">✓</span>
+                <span>At least 8 characters</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="text-white">✓</span>
+                <span>An uppercase and a lowercase letter</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="text-white">✓</span>
+                <span>At least one number</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="text-white">✓</span>
+                <span>At least one special character</span>
+              </li>
+            </ul>
+          </div>
+
+          <p className="text-sm text-white/50">
+            We will never ask for your password by email.
+          </p>
+        </div>
+
+        {/* RIGHT: FORM */}
+        <div className="p-8 md:p-10 flex flex-col justify-center">
+          <div className="lg:hidden mb-6">
+            <Link to="/" className="flex items-center gap-2">
+              <span className="text-2xl">🎓</span>
+              <span className="font-display font-extrabold text-lg text-black-900">
+                LearnHub
+              </span>
+            </Link>
+          </div>
+
+          <h1 className="font-display font-extrabold text-2xl md:text-3xl text-black-900 mb-2">
+            Set a new password
+          </h1>
+          <p className="text-black-500 text-sm mb-6">
+            Choose a password you have not used before.
+          </p>
+
+          {!token ? (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-5 text-sm text-red-800">
+              <div className="font-semibold mb-1">Missing reset token</div>
+              <p>
+                This link is invalid. Request a new reset email from the{' '}
+                <Link to="/forgot-password" className="font-semibold underline">
+                  forgot password
+                </Link>{' '}
+                page.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={onSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-black-700 mb-1.5">
+                  New password
+                </label>
+                <input
+                  type="password"
+                  required
+                  className="w-full border border-black-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-black-900"
+                  placeholder="At least 8 characters"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <PasswordChecklist password={password} />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || !isStrongPassword(password)}
+                className="w-full bg-black-900 hover:bg-black-800 text-white font-semibold py-3 rounded-xl disabled:opacity-50 transition"
+              >
+                {loading ? 'Resetting...' : 'Reset password'}
+              </button>
+            </form>
+          )}
+
+          <p className="text-sm mt-6 text-center text-black-600">
+            Remembered it?{' '}
+            <Link to="/login" className="text-black-900 hover:underline font-semibold">
+              Back to login
+            </Link>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

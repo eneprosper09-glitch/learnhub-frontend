@@ -33,7 +33,7 @@ export default function AdminModeration() {
   };
 
   const removeCourse = async (id) => {
-    if (!window.confirm('Soft delete this course?')) return;
+    if (!window.confirm('Delete this course? It will be removed from all listings.')) return;
     try {
       await api.delete(`/courses/${id}`);
       toast.success('Course deleted');
@@ -45,93 +45,124 @@ export default function AdminModeration() {
 
   if (isLoading) return <Spinner full />;
 
-  const courses = data || [];
+  const courses = Array.isArray(data) ? data : [];
+  const published = courses.filter((c) => c.isPublished).length;
+  const drafts = courses.length - published;
 
   return (
-    <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold">Course Moderation</h1>
-        <p className="text-slate-500 text-sm">{courses.length} courses</p>
+    <div className="space-y-6">
+      <div className="bg-black-900 rounded-3xl px-6 md:px-10 py-8 text-white">
+        <div className="text-xs font-bold tracking-widest text-white/60 uppercase mb-2">
+          Admin
+        </div>
+        <h1 className="font-display font-extrabold text-2xl md:text-3xl">Course moderation</h1>
+        <p className="text-white/70 text-sm mt-1">
+          {published} published · {drafts} draft{drafts === 1 ? '' : 's'}
+        </p>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl p-4">
+      <div className="bg-white border border-black-200 rounded-2xl p-4 shadow-card">
         <input
-          className="w-full border border-slate-300 rounded-lg px-3 py-2"
-          placeholder="Search courses..."
+          className="w-full border border-black-300 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-black-900"
+          placeholder="Search courses by title or description..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+      <div className="overflow-x-auto rounded-2xl border border-black-200 bg-white">
         <table className="min-w-full text-sm">
           <thead>
             <tr>
-              <th className="bg-slate-50 text-left px-4 py-3 font-semibold text-slate-600 border-b">
-                Title
+              <th className="bg-black-50 text-left px-4 py-3 font-semibold text-black-600 border-b border-black-200">
+                Course
               </th>
-              <th className="bg-slate-50 text-left px-4 py-3 font-semibold text-slate-600 border-b">
+              <th className="bg-black-50 text-left px-4 py-3 font-semibold text-black-600 border-b border-black-200">
                 Instructor
               </th>
-              <th className="bg-slate-50 text-left px-4 py-3 font-semibold text-slate-600 border-b">
+              <th className="bg-black-50 text-left px-4 py-3 font-semibold text-black-600 border-b border-black-200">
                 Students
               </th>
-              <th className="bg-slate-50 text-left px-4 py-3 font-semibold text-slate-600 border-b">
+              <th className="bg-black-50 text-left px-4 py-3 font-semibold text-black-600 border-b border-black-200">
+                Price
+              </th>
+              <th className="bg-black-50 text-left px-4 py-3 font-semibold text-black-600 border-b border-black-200">
                 Status
               </th>
-              <th className="bg-slate-50 text-right px-4 py-3 font-semibold text-slate-600 border-b">
+              <th className="bg-black-50 text-right px-4 py-3 font-semibold text-black-600 border-b border-black-200">
                 Actions
               </th>
             </tr>
           </thead>
           <tbody>
+            {courses.length === 0 && (
+              <tr>
+                <td colSpan={6} className="text-center py-12 text-black-500">
+                  No courses found.
+                </td>
+              </tr>
+            )}
             {courses.map((c) => (
-              <tr key={c._id} className="hover:bg-slate-50/60">
-                <td className="px-4 py-3 border-b border-slate-100">
-                  <Link to={`/courses/${c._id}`} className="hover:text-indigo-600 font-medium">
-                    {c.title}
-                  </Link>
+              <tr key={c._id} className="hover:bg-black-50/60">
+                <td className="px-4 py-3 border-b border-black-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-lg bg-black-100 overflow-hidden flex-shrink-0">
+                      {c.thumbnailUrl ? (
+                        <img
+                          src={c.thumbnailUrl}
+                          alt={c.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-black-300">
+                          🎓
+                        </div>
+                      )}
+                    </div>
+                    <Link
+                      to={`/courses/${c._id}`}
+                      className="hover:text-black-700 font-medium text-black-900 line-clamp-2"
+                    >
+                      {c.title}
+                    </Link>
+                  </div>
                 </td>
-                <td className="px-4 py-3 border-b border-slate-100">
-                  {c.instructor?.name}
+                <td className="px-4 py-3 border-b border-black-100 text-black-600">
+                  {c.instructor?.name || '—'}
                 </td>
-                <td className="px-4 py-3 border-b border-slate-100">
+                <td className="px-4 py-3 border-b border-black-100 text-black-600">
                   {c.totalStudents || 0}
                 </td>
-                <td className="px-4 py-3 border-b border-slate-100">
+                <td className="px-4 py-3 border-b border-black-100 font-medium text-black-900">
+                  {c.price > 0 ? `$${c.price}` : 'Free'}
+                </td>
+                <td className="px-4 py-3 border-b border-black-100">
                   <span
-                    className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                    className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                       c.isPublished
                         ? 'bg-green-100 text-green-700'
-                        : 'bg-slate-100 text-slate-600'
+                        : 'bg-black-100 text-black-600'
                     }`}
                   >
                     {c.isPublished ? 'Published' : 'Draft'}
                   </span>
                 </td>
-                <td className="px-4 py-3 border-b border-slate-100 text-right space-x-2">
+                <td className="px-4 py-3 border-b border-black-100 text-right space-x-2 whitespace-nowrap">
                   <button
                     onClick={() => togglePublish(c._id)}
-                    className="text-xs px-3 py-1 rounded-md border border-slate-300 hover:bg-slate-50"
+                    className="text-xs px-3 py-1.5 rounded-md border border-black-300 hover:bg-black-50 font-medium text-black-700 transition"
                   >
                     {c.isPublished ? 'Unpublish' : 'Publish'}
                   </button>
                   <button
                     onClick={() => removeCourse(c._id)}
-                    className="text-xs px-3 py-1 rounded-md bg-red-500 hover:bg-red-600 text-white"
+                    className="text-xs px-3 py-1.5 rounded-md bg-red-500 hover:bg-red-600 text-white font-medium transition"
                   >
                     Delete
                   </button>
                 </td>
               </tr>
             ))}
-            {courses.length === 0 && (
-              <tr>
-                <td colSpan={5} className="text-center py-8 text-slate-500">
-                  No courses found.
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>

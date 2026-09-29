@@ -66,67 +66,104 @@ export default function AdminCategories() {
 
   if (isLoading) return <Spinner full />;
 
+  const items = Array.isArray(data) ? data : [];
+
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-2xl font-bold">Categories</h1>
+    <div className="space-y-6">
+      <div className="bg-black-900 rounded-3xl px-6 md:px-10 py-8 text-white flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+        <div>
+          <div className="text-xs font-bold tracking-widest text-white/60 uppercase mb-2">
+            Admin
+          </div>
+          <h1 className="font-display font-extrabold text-2xl md:text-3xl">Categories</h1>
+          <p className="text-white/70 text-sm mt-1">
+            {items.length} categor{items.length === 1 ? 'y' : 'ies'} on the platform
+          </p>
+        </div>
         <button
           onClick={openCreate}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg"
+          className="bg-white text-black-900 hover:bg-black-100 font-semibold px-6 py-3 rounded-xl transition whitespace-nowrap"
         >
-          + Add Category
+          + Add category
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {(data || []).map((c) => (
-          <div key={c._id} className="bg-white border border-slate-200 rounded-xl p-4">
-            <div className="font-semibold text-lg">{c.name}</div>
-            <div className="text-xs text-slate-500 font-mono mt-1">{c.slug}</div>
-            <div className="flex gap-2 mt-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {items.length === 0 && (
+          <div className="col-span-full bg-white border-2 border-dashed border-black-200 rounded-2xl p-12 text-center">
+            <div className="text-5xl mb-4">🏛️</div>
+            <h3 className="font-display font-bold text-lg text-black-900 mb-2">
+              No categories yet
+            </h3>
+            <p className="text-black-500 mb-5 text-sm">
+              Categories help students find courses. Create your first one.
+            </p>
+            <button
+              onClick={openCreate}
+              className="bg-black-900 hover:bg-black-800 text-white font-semibold px-5 py-2.5 rounded-xl transition"
+            >
+              + Add your first category
+            </button>
+          </div>
+        )}
+        {items.map((c) => (
+          <div
+            key={c._id}
+            className="bg-white border border-black-200 rounded-2xl p-5 shadow-card hover:shadow-soft transition"
+          >
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div className="w-12 h-12 rounded-xl bg-black-900 text-white flex items-center justify-center font-display font-extrabold text-lg">
+                {c.name.charAt(0).toUpperCase()}
+              </div>
+              <span className="text-xs text-black-500 font-mono">{c.slug}</span>
+            </div>
+            <div className="font-display font-bold text-lg text-black-900">{c.name}</div>
+            <div className="flex gap-2 mt-5 pt-4 border-t border-black-100">
               <button
                 onClick={() => openEdit(c)}
-                className="text-sm px-3 py-1 rounded-md border border-slate-300 hover:bg-slate-50"
+                className="text-sm px-3 py-1.5 rounded-lg border border-black-300 hover:bg-black-50 font-medium text-black-700 flex-1 transition"
               >
                 Edit
               </button>
               <button
                 onClick={() => setDeleteTarget(c)}
-                className="text-sm px-3 py-1 rounded-md bg-red-500 hover:bg-red-600 text-white"
+                className="text-sm px-3 py-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium flex-1 transition"
               >
                 Delete
               </button>
             </div>
           </div>
         ))}
-        {(data || []).length === 0 && (
-          <p className="col-span-full text-slate-500">No categories yet.</p>
-        )}
       </div>
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? 'Edit Category' : 'Add Category'} size="sm">
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={editing ? 'Edit Category' : 'Add Category'}
+        size="sm"
+      >
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
+            <label className="block text-sm font-semibold text-black-800 mb-1.5">Name</label>
             <input
               required
-              className="w-full border border-slate-300 rounded-lg px-3 py-2"
+              className="w-full border border-black-300 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-black-900"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </div>
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="px-4 py-2 rounded-lg border border-slate-300 hover:bg-slate-50"
+              className="px-5 py-2.5 rounded-xl border border-black-300 hover:bg-black-50 font-medium text-black-700 transition"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50"
+              className="px-5 py-2.5 rounded-xl bg-black-900 hover:bg-black-800 text-white font-semibold disabled:opacity-50 transition"
             >
               {saving ? 'Saving...' : editing ? 'Update' : 'Create'}
             </button>

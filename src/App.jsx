@@ -7,11 +7,18 @@ import Register from './pages/Register.jsx';
 import VerifyEmail from './pages/VerifyEmail.jsx';
 import ForgotPassword from './pages/ForgotPassword.jsx';
 import ResetPassword from './pages/ResetPassword.jsx';
+import Landing from './pages/Landing.jsx';
+import About from './pages/About.jsx';
+import Contact from './pages/Contact.jsx';
+import Terms from './pages/Terms.jsx';
 import Home from './pages/Home.jsx';
 import CourseDetail from './pages/CourseDetail.jsx';
 import Checkout from './pages/Checkout.jsx';
 import LessonPlayer from './pages/LessonPlayer.jsx';
 import MyLearning from './pages/MyLearning.jsx';
+import Profile from './pages/Profile.jsx';
+import Certificate from './pages/Certificate.jsx';
+import InstructorProfile from './pages/InstructorProfile.jsx';
 import InstructorDashboard from './pages/InstructorDashboard.jsx';
 import CourseEditor from './pages/CourseEditor.jsx';
 import CurriculumManager from './pages/CurriculumManager.jsx';
@@ -24,23 +31,54 @@ import NotFound from './pages/NotFound.jsx';
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/terms" element={<Terms />} />
+
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
-      <Route
-        element={
-          <ProtectedRoute>
-            <Layout />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="/" element={<Home />} />
+      <Route element={<Layout />}>
+        <Route path="/courses" element={<Home />} />
         <Route path="/courses/:id" element={<CourseDetail />} />
-        <Route path="/checkout/:courseId" element={<Checkout />} />
-        <Route path="/my-learning" element={<MyLearning />} />
+        <Route path="/instructors/:id" element={<InstructorProfile />} />
+
+        <Route
+          path="/checkout/:courseId"
+          element={
+            <ProtectedRoute>
+              <Checkout />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-learning"
+          element={
+            <ProtectedRoute>
+              <MyLearning />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/certificates/:courseId"
+          element={
+            <ProtectedRoute>
+              <Certificate />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/instructor"
@@ -110,7 +148,7 @@ export default function App() {
       </Route>
 
       <Route
-        path="/courses/:id/lessons/:lessonId"
+        path="/learn/:courseId/:lessonId"
         element={
           <ProtectedRoute>
             <LessonPlayer />
