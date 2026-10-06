@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -7,7 +7,17 @@ import Spinner from '../components/Spinner';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { useAuth } from '../context/AuthContext';
 
-const TABS = ['About', 'What you will learn', 'Modules', 'Instructor', 'Reviews', 'Announcements'];
+const CourseChat = lazy(() => import('./CourseChat.jsx'));
+
+const TABS = [
+  'About',
+  'What you will learn',
+  'Modules',
+  'Instructor',
+  'Reviews',
+  'Announcements',
+  'Chat',
+];
 
 const WHAT_YOU_LEARN = [
   'Build real projects with modern tools and frameworks',
@@ -238,7 +248,8 @@ export default function CourseDetail() {
             {data.title}
           </h1>
           <p className="text-lg text-black-700 mt-4 leading-relaxed">
-            {data.description || 'Learn practical skills with a hands-on, project-based curriculum.'}
+            {data.description ||
+              'Learn practical skills with a hands-on, project-based curriculum.'}
           </p>
           <div className="flex flex-wrap items-center gap-5 text-sm text-black-600 mt-5">
             <span className="flex items-center gap-2">
@@ -276,7 +287,9 @@ export default function CourseDetail() {
             </div>
             <div className="mt-5">
               {price === 0 ? (
-                <div className="font-display font-extrabold text-3xl text-black-900">Free</div>
+                <div className="font-display font-extrabold text-3xl text-black-900">
+                  Free
+                </div>
               ) : hasDiscount ? (
                 <div className="flex items-baseline gap-3 flex-wrap">
                   <span className="text-black-400 line-through text-lg">${price}</span>
@@ -415,7 +428,9 @@ export default function CourseDetail() {
                 <div className="text-xs font-bold tracking-widest text-black-500 uppercase mb-2">
                   Level
                 </div>
-                <div className="font-semibold text-black-900 capitalize">{data.level}</div>
+                <div className="font-semibold text-black-900 capitalize">
+                  {data.level}
+                </div>
               </div>
               <div className="bg-black-50 rounded-xl p-5">
                 <div className="text-xs font-bold tracking-widest text-black-500 uppercase mb-2">
@@ -635,7 +650,9 @@ export default function CourseDetail() {
                         type="button"
                         onClick={() => setReviewForm({ ...reviewForm, rating: star })}
                         className={`text-3xl transition ${
-                          star <= reviewForm.rating ? 'text-yellow-500' : 'text-black-200'
+                          star <= reviewForm.rating
+                            ? 'text-yellow-500'
+                            : 'text-black-200'
                         } hover:scale-110`}
                         aria-label={`${star} star`}
                       >
@@ -739,10 +756,7 @@ export default function CourseDetail() {
             ) : (
               <div className="space-y-4">
                 {announcements.map((a) => (
-                  <div
-                    key={a._id}
-                    className="border border-black-100 rounded-xl p-5"
-                  >
+                  <div key={a._id} className="border border-black-100 rounded-xl p-5">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-9 h-9 rounded-full bg-black-900 text-white flex items-center justify-center font-semibold text-sm">
                         {a.instructor?.name?.[0] || 'I'}
@@ -764,6 +778,34 @@ export default function CourseDetail() {
                     </p>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === 'Chat' && (
+          <div>
+            {user ? (
+              <Suspense
+                fallback={
+                  <div className="flex items-center justify-center py-16 text-sm text-black-500">
+                    Loading chat…
+                  </div>
+                }
+              >
+                <CourseChat courseId={id} />
+              </Suspense>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-black-500 mb-4">
+                  Log in to join the course chat.
+                </p>
+                <Link
+                  to={`/login?redirect=/courses/${id}`}
+                  className="inline-block bg-black-900 hover:bg-black-800 text-white font-semibold px-6 py-3 rounded-xl transition"
+                >
+                  Log in
+                </Link>
               </div>
             )}
           </div>

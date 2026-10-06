@@ -1,7 +1,11 @@
-import { useParams, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import api from '../api/client';
 import Spinner from '../components/Spinner';
+import { useAuth } from '../context/AuthContext';
+import { startDirectConversation } from '../api/conversations';
 
 const Stars = ({ value }) => {
   const v = Math.round(value || 0);
@@ -15,6 +19,9 @@ const Stars = ({ value }) => {
 
 export default function InstructorProfile() {
   const { id } = useParams();
+  const nav = useNavigate();
+  const { user } = useAuth();
+  const [starting, setStarting] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['instructor-profile', id],
@@ -26,6 +33,29 @@ export default function InstructorProfile() {
   if (!data) return <p className="text-black-500">Instructor not found</p>;
 
   const { instructor, stats, courses, reviews } = data;
+
+  const isSelf = user?._id && String(user._id) === String(instructor._id);
+  const canMessage = !!user && !isSelf;
+
+  const handleMessage = async () => {
+    if (!user) {
+      nav(`/login?redirect=/instructors/${id}`);
+      return;
+    }
+    setStarting(true);
+    try {
+      const conv = await startDirectConversation(instructor._id);
+      if (!conv?._id) {
+        toast.error('Could not open conversation');
+        return;
+      }
+      nav(`/messages?c=${conv._id}`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not start conversation');
+    } finally {
+      setStarting(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -59,6 +89,31 @@ export default function InstructorProfile() {
                 {stats.students.toLocaleString()} students
               </span>
             </div>
+
+            {canMessage && (
+              <div className="mt-5">
+                <button
+                  type="button"
+                  onClick={handleMessage}
+                  disabled={starting}
+                  className="inline-flex items-center gap-2 bg-white text-black-900 hover:bg-white/90 font-semibold px-5 py-2.5 rounded-xl transition disabled:opacity-60"
+                >
+                  <span>💬</span>
+                  <span>{starting ? 'Opening…' : 'Message'}</span>
+                </button>
+              </div>
+            )}
+
+            {!user && (
+              <div className="mt-5">
+                <Link
+                  to={`/login?redirect=/instructors/${id}`}
+                  className="inline-flex items-center gap-2 bg-white text-black-900 hover:bg-white/90 font-semibold px-5 py-2.5 rounded-xl transition"
+                >
+                  Log in to message
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>

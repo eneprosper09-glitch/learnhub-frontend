@@ -18,6 +18,7 @@ import LessonPlayer from './pages/LessonPlayer.jsx';
 import MyLearning from './pages/MyLearning.jsx';
 import Profile from './pages/Profile.jsx';
 import Certificate from './pages/Certificate.jsx';
+import Messages from './pages/Messages.jsx';
 import InstructorProfile from './pages/InstructorProfile.jsx';
 import InstructorDashboard from './pages/InstructorDashboard.jsx';
 import CourseEditor from './pages/CourseEditor.jsx';
@@ -76,6 +77,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Certificate />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/messages"
+          element={
+            <ProtectedRoute>
+              <Messages />
             </ProtectedRoute>
           }
         />

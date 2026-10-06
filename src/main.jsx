@@ -5,7 +5,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import App from './App.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
-import { ThemeProvider } from './context/ThemeContext.jsx';
+import { SocketProvider } from './context/SocketContext.jsx';
+import { CallProvider } from './context/CallContext.jsx';
+import CallModal from './components/CallModal.jsx';
+import CallScreen from './components/CallScreen.jsx';
 import { initSentry, Sentry } from './lib/sentry.js';
 import './index.css';
 
@@ -29,12 +32,12 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <div>
             <div className="text-4xl mb-3">😵</div>
             <h1 className="text-xl font-bold mb-2">Something went wrong</h1>
-            <p className="text-black-500 text-sm mb-4">
+            <p className="text-slate-500 text-sm mb-4">
               The error has been reported. Please refresh the page.
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="bg-black-900 hover:bg-black-800 text-white px-4 py-2 rounded-xl"
+              className="bg-black-900 hover:bg-black-800 text-white px-4 py-2 rounded-lg"
             >
               Reload
             </button>
@@ -44,12 +47,16 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     >
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
-          <ThemeProvider>
-            <AuthProvider>
-              <App />
-              <Toaster position="top-right" />
-            </AuthProvider>
-          </ThemeProvider>
+          <AuthProvider>
+            <SocketProvider>
+              <CallProvider>
+                <App />
+                <CallModal />
+                <CallScreen />
+                <Toaster position="top-right" />
+              </CallProvider>
+            </SocketProvider>
+          </AuthProvider>
         </QueryClientProvider>
       </BrowserRouter>
     </Sentry.ErrorBoundary>
