@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import { useAuth } from './context/AuthContext';
 
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
@@ -29,6 +30,17 @@ import AdminCategories from './pages/AdminCategories.jsx';
 import AdminModeration from './pages/AdminModeration.jsx';
 import NotFound from './pages/NotFound.jsx';
 
+// Redirects instructor accounts away from student-only pages.
+// Admins are not redirected — they moderate and may need to test student flows.
+function BlockInstructor({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (user && user.role === 'instructor') {
+    return <Navigate to="/instructor" replace />;
+  }
+  return children;
+}
+
 export default function App() {
   return (
     <Routes>
@@ -52,7 +64,9 @@ export default function App() {
           path="/checkout/:courseId"
           element={
             <ProtectedRoute>
-              <Checkout />
+              <BlockInstructor>
+                <Checkout />
+              </BlockInstructor>
             </ProtectedRoute>
           }
         />
@@ -60,7 +74,9 @@ export default function App() {
           path="/my-learning"
           element={
             <ProtectedRoute>
-              <MyLearning />
+              <BlockInstructor>
+                <MyLearning />
+              </BlockInstructor>
             </ProtectedRoute>
           }
         />

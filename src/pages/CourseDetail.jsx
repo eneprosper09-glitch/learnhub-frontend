@@ -124,6 +124,15 @@ export default function CourseDetail() {
   const reviewCount = reviewsRes?.count || 0;
   const announcements = Array.isArray(announcementsRes) ? announcementsRes : [];
 
+  // --- Viewer relationship to this course ---
+  const courseInstructorId = data.instructor?._id || data.instructor || null;
+  const isOwnCourse =
+    user && courseInstructorId && String(user._id) === String(courseInstructorId);
+  const isInstructorViewer = user?.role === 'instructor';
+  // Instructors cannot enroll at all. Admins can (they moderate and may need
+  // to test student flows). Students can.
+  const canEnroll = !isInstructorViewer && !isOwnCourse;
+
   const goToFirstLesson = () => {
     if (!user) {
       nav(`/login?redirect=/courses/${id}`);
@@ -145,6 +154,7 @@ export default function CourseDetail() {
       nav(`/login?redirect=/courses/${id}`);
       return;
     }
+    if (!canEnroll) return;
     if (data.previouslyPaid) {
       api
         .post(`/enrollments/${id}/enroll`, {})
@@ -286,99 +296,168 @@ export default function CourseDetail() {
               )}
             </div>
             <div className="mt-5">
-              {price === 0 ? (
-                <div className="font-display font-extrabold text-3xl text-black-900">
-                  Free
-                </div>
-              ) : hasDiscount ? (
-                <div className="flex items-baseline gap-3 flex-wrap">
-                  <span className="text-black-400 line-through text-lg">${price}</span>
-                  <span className="font-display font-extrabold text-3xl text-black-900">
-                    ${finalPrice}
-                  </span>
-                  <span className="bg-red-100 text-red-700 text-xs font-bold px-2.5 py-1 rounded-full">
-                    {discount}% OFF
-                  </span>
-                </div>
-              ) : (
-                <div className="font-display font-extrabold text-3xl text-black-900">
-                  ${price}
-                </div>
-              )}
-              {isPaid && (
-                <div className="text-xs text-black-500 mt-2">
-                  One-time payment · Lifetime access
-                </div>
-              )}
-
-              <div className="mt-5 space-y-2">
-                {firstFreeLesson && !data.enrolled && (
-                  <button
-                    onClick={() => goToLesson(firstFreeLesson)}
-                    className="w-full border border-black-900 text-black-900 hover:bg-black-50 font-semibold py-3 rounded-xl transition"
-                  >
-                    Preview this course
-                  </button>
-                )}
-
-                {!user ? (
+              {/* INSTRUCTOR VIEW — own course */}
+              {isOwnCourse && (
+                <div className="space-y-3">
+                  <div className="bg-black-50 border border-black-100 rounded-xl p-4">
+                    <div className="text-xs font-bold tracking-widest text-black-500 uppercase mb-1">
+                      You teach this course
+                    </div>
+                    <div className="text-sm text-black-700">
+                      This is your course. Manage lessons, students, and settings from the
+                      instructor dashboard.
+                    </div>
+                  </div>
                   <Link
-                    to={`/login?redirect=/courses/${id}`}
+                    to={`/instructor/courses/${data._id}`}
                     className="block w-full text-center bg-black-900 hover:bg-black-800 text-white font-semibold py-3 rounded-xl transition"
                   >
-                    Log in to {isPaid ? 'buy' : 'enroll'}
+                    Manage course
                   </Link>
-                ) : data.enrolled ? (
-                  <>
-                    <button
-                      onClick={goToFirstLesson}
-                      className="w-full bg-black-900 hover:bg-black-800 text-white font-semibold py-3 rounded-xl transition"
-                    >
-                      Continue learning
-                    </button>
-                    <button
-                      onClick={() => setUnenrollOpen(true)}
-                      className="w-full text-sm text-black-500 hover:text-red-600 py-2"
-                    >
-                      Unenroll from this course
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={handleEnrollClick}
-                    className="w-full bg-black-900 hover:bg-black-800 text-white font-semibold py-3 rounded-xl transition"
+                  <Link
+                    to={`/instructor/courses/${data._id}/curriculum`}
+                    className="block w-full text-center border border-black-900 text-black-900 hover:bg-black-50 font-semibold py-3 rounded-xl transition"
                   >
-                    {data.previouslyPaid
-                      ? 'Re-enroll (free)'
-                      : isPaid
-                      ? `Buy for $${finalPrice}`
-                      : 'Enroll now'}
-                  </button>
-                )}
-              </div>
+                    Edit curriculum
+                  </Link>
+                  <Link
+                    to={`/instructor/courses/${data._id}/students`}
+                    className="block w-full text-center border border-black-300 text-black-700 hover:bg-black-50 font-medium py-2.5 rounded-xl transition text-sm"
+                  >
+                    View students
+                  </Link>
+                </div>
+              )}
 
-              <ul className="mt-6 pt-5 space-y-3 text-sm text-black-600 border-t border-black-100">
-                <li className="flex items-center gap-3">
-                  <span>📚</span>
-                  <span>{totalLessons} lessons</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <span>⏱️</span>
-                  <span>Self-paced</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <span>📱</span>
-                  <span>Access on mobile and desktop</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <span>🏆</span>
-                  <span>Certificate on completion</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <span>♾️</span>
-                  <span>Lifetime access</span>
-                </li>
-              </ul>
+              {/* INSTRUCTOR VIEW — someone else's course */}
+              {!isOwnCourse && isInstructorViewer && (
+                <div className="space-y-3">
+                  <div className="bg-black-50 border border-black-100 rounded-xl p-4">
+                    <div className="text-xs font-bold tracking-widest text-black-500 uppercase mb-1">
+                      Preview mode
+                    </div>
+                    <div className="text-sm text-black-700">
+                      Instructor accounts cannot enroll in courses. You can preview this
+                      course from a student's perspective, but not take it.
+                    </div>
+                  </div>
+                  {firstFreeLesson && (
+                    <button
+                      onClick={() => goToLesson(firstFreeLesson)}
+                      className="block w-full text-center border border-black-900 text-black-900 hover:bg-black-50 font-semibold py-3 rounded-xl transition"
+                    >
+                      Preview this course
+                    </button>
+                  )}
+                  <Link
+                    to="/instructor"
+                    className="block w-full text-center text-sm font-semibold text-black-700 hover:text-black-900 py-2"
+                  >
+                    ← Back to Teach
+                  </Link>
+                </div>
+              )}
+
+              {/* STUDENT / ADMIN / LOGGED-OUT VIEW */}
+              {!isInstructorViewer && (
+                <>
+                  {price === 0 ? (
+                    <div className="font-display font-extrabold text-3xl text-black-900">
+                      Free
+                    </div>
+                  ) : hasDiscount ? (
+                    <div className="flex items-baseline gap-3 flex-wrap">
+                      <span className="text-black-400 line-through text-lg">
+                        ${price}
+                      </span>
+                      <span className="font-display font-extrabold text-3xl text-black-900">
+                        ${finalPrice}
+                      </span>
+                      <span className="bg-red-100 text-red-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                        {discount}% OFF
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="font-display font-extrabold text-3xl text-black-900">
+                      ${price}
+                    </div>
+                  )}
+                  {isPaid && (
+                    <div className="text-xs text-black-500 mt-2">
+                      One-time payment · Lifetime access
+                    </div>
+                  )}
+
+                  <div className="mt-5 space-y-2">
+                    {firstFreeLesson && !data.enrolled && (
+                      <button
+                        onClick={() => goToLesson(firstFreeLesson)}
+                        className="w-full border border-black-900 text-black-900 hover:bg-black-50 font-semibold py-3 rounded-xl transition"
+                      >
+                        Preview this course
+                      </button>
+                    )}
+
+                    {!user ? (
+                      <Link
+                        to={`/login?redirect=/courses/${id}`}
+                        className="block w-full text-center bg-black-900 hover:bg-black-800 text-white font-semibold py-3 rounded-xl transition"
+                      >
+                        Log in to {isPaid ? 'buy' : 'enroll'}
+                      </Link>
+                    ) : data.enrolled ? (
+                      <>
+                        <button
+                          onClick={goToFirstLesson}
+                          className="w-full bg-black-900 hover:bg-black-800 text-white font-semibold py-3 rounded-xl transition"
+                        >
+                          Continue learning
+                        </button>
+                        <button
+                          onClick={() => setUnenrollOpen(true)}
+                          className="w-full text-sm text-black-500 hover:text-red-600 py-2"
+                        >
+                          Unenroll from this course
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={handleEnrollClick}
+                        className="w-full bg-black-900 hover:bg-black-800 text-white font-semibold py-3 rounded-xl transition"
+                      >
+                        {data.previouslyPaid
+                          ? 'Re-enroll (free)'
+                          : isPaid
+                          ? `Buy for $${finalPrice}`
+                          : 'Enroll now'}
+                      </button>
+                    )}
+                  </div>
+
+                  <ul className="mt-6 pt-5 space-y-3 text-sm text-black-600 border-t border-black-100">
+                    <li className="flex items-center gap-3">
+                      <span>📚</span>
+                      <span>{totalLessons} lessons</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <span>⏱️</span>
+                      <span>Self-paced</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <span>📱</span>
+                      <span>Access on mobile and desktop</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <span>🏆</span>
+                      <span>Certificate on completion</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <span>♾️</span>
+                      <span>Lifetime access</span>
+                    </li>
+                  </ul>
+                </>
+              )}
             </div>
           </div>
         </aside>
@@ -534,12 +613,14 @@ export default function CourseDetail() {
                           </div>
                         </div>
                         <div className="flex-shrink-0">
-                          {lesson.isFree || data.enrolled ? (
+                          {lesson.isFree || data.enrolled || isOwnCourse ? (
                             <button
                               onClick={() => goToLesson(lesson)}
                               className="text-sm font-semibold text-black-900 hover:underline"
                             >
-                              {lesson.isFree && !data.enrolled ? 'Preview' : 'Start'}
+                              {lesson.isFree && !data.enrolled && !isOwnCourse
+                                ? 'Preview'
+                                : 'Start'}
                             </button>
                           ) : (
                             <span className="text-black-400 text-lg">🔒</span>
@@ -793,7 +874,11 @@ export default function CourseDetail() {
                   </div>
                 }
               >
-                <CourseChat courseId={id} />
+                <CourseChat
+                  courseId={id}
+                  courseInstructorId={courseInstructorId}
+                  courseTitle={data.title}
+                />
               </Suspense>
             ) : (
               <div className="text-center py-8">

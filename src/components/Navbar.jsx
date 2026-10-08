@@ -18,6 +18,10 @@ export default function Navbar({ variant = 'app' }) {
 
   const isMarketing = variant === 'marketing';
 
+  // Instructors don't learn (they can't enroll). Admins still see My Learning
+  // so they can test student flows. Everyone else sees it.
+  const canLearn = !user || user.role !== 'instructor';
+
   const { data: categoriesRes } = useQuery({
     queryKey: ['categories'],
     queryFn: () => api.get('/categories').then((r) => r.data.data),
@@ -150,7 +154,7 @@ export default function Navbar({ variant = 'app' }) {
               Browse
             </NavLink>
 
-            {user && (
+            {user && canLearn && (
               <NavLink
                 to="/my-learning"
                 className={({ isActive }) =>
@@ -338,13 +342,15 @@ export default function Navbar({ variant = 'app' }) {
                         {user.email}
                       </div>
                     </div>
-                    <Link
-                      to="/my-learning"
-                      onClick={() => setUserMenuOpen(false)}
-                      className="block px-4 py-2 text-sm text-black-700 hover:bg-black-50"
-                    >
-                      My Learning
-                    </Link>
+                    {canLearn && (
+                      <Link
+                        to="/my-learning"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="block px-4 py-2 text-sm text-black-700 hover:bg-black-50"
+                      >
+                        My Learning
+                      </Link>
+                    )}
                     <Link
                       to="/messages"
                       onClick={() => setUserMenuOpen(false)}
@@ -417,7 +423,7 @@ export default function Navbar({ variant = 'app' }) {
             >
               Browse courses
             </NavLink>
-            {user && (
+            {user && canLearn && (
               <NavLink
                 to="/my-learning"
                 onClick={() => setMenuOpen(false)}

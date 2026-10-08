@@ -1,13 +1,16 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import api from '../api/client';
 import Spinner from '../components/Spinner';
 import { useAuth } from '../context/AuthContext';
+import CourseChat from './CourseChat.jsx';
 
 export default function InstructorDashboard() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [openChatCourse, setOpenChatCourse] = useState(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['instructor-courses'],
@@ -200,11 +203,19 @@ export default function InstructorDashboard() {
                       <span>⭐ {c.averageRating?.toFixed(1) || '0.0'}</span>
                     </div>
 
-                    <div className="mt-auto flex items-center justify-between pt-3 border-t border-black-100">
+                    <div className="mt-auto flex items-center justify-between pt-3 border-t border-black-100 gap-2 flex-wrap">
                       <span className="font-bold text-black-900 text-sm">
                         {c.price > 0 ? `$${c.price}` : 'Free'}
                       </span>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <button
+                          onClick={() => setOpenChatCourse(c)}
+                          className="text-xs px-2.5 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium transition flex items-center gap-1"
+                          title="Open group chat and start a call"
+                        >
+                          <span>💬</span>
+                          <span>Chat</span>
+                        </button>
                         <Link
                           to={`/instructor/courses/${c._id}`}
                           className="text-xs px-2.5 py-1.5 rounded-md border border-black-300 hover:bg-black-50 font-medium text-black-700 transition"
@@ -294,6 +305,51 @@ export default function InstructorDashboard() {
           </div>
         </aside>
       </div>
+
+      {/* GROUP CHAT MODAL */}
+      {openChatCourse && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.6)' }}
+          onClick={() => setOpenChatCourse(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-3 border-b border-black-200 px-5 py-4 sticky top-0 bg-white z-10">
+              <div className="min-w-0">
+                <div className="text-xs font-bold tracking-widest text-black-500 uppercase mb-1">
+                  Group chat
+                </div>
+                <h3 className="font-display font-bold text-lg text-black-900 truncate">
+                  {openChatCourse.title}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOpenChatCourse(null)}
+                className="w-9 h-9 rounded-full hover:bg-black-50 flex items-center justify-center text-black-500 hover:text-black-900 transition flex-shrink-0"
+                aria-label="Close chat"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-5">
+              <CourseChat
+                courseId={openChatCourse._id}
+                courseInstructorId={
+                  openChatCourse.instructor?._id || openChatCourse.instructor || user?._id
+                }
+                courseTitle={openChatCourse.title}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
